@@ -126,7 +126,6 @@ function ItemDAO(database) {
             cursor.each(function(err, doc) {
                 if(err) throw err;
                 if(doc != null) {
-                    console.log(doc)
                     pageItems.push(doc);
                 } else {
                     callback(pageItems);
@@ -143,7 +142,6 @@ function ItemDAO(database) {
             cursor.each(function(err, doc) {
                 if(err) throw err;
                 if(doc != null) {
-                    console.log(doc)
                     pageItems.push(doc);
                 } else {
                     callback(pageItems);
@@ -167,9 +165,16 @@ function ItemDAO(database) {
     this.getNumItems = function(category, callback) {
         "use strict";
 
-        var numItems = 0;
-
-
+        if(category == "All") {
+            database.collection("item").find({}).sort('_id',1).count(function(err, count) {
+                callback(count);
+            });
+        } else {
+            database.collection("item").find({category: category}).sort('_id',1).count(function(err, count) {
+                callback(count);
+            });
+        }
+        
         /*
          * TODO-lab1C:
          *
@@ -187,7 +192,6 @@ function ItemDAO(database) {
 
          // TODO Include the following line in the appropriate
          // place within your code to pass the count to the callback.
-        callback(numItems);
     }
 
 
