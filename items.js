@@ -22,15 +22,18 @@ var MongoClient = require('mongodb').MongoClient,
 function ItemDAO(database) {
     "use strict";
 
-    var categories = [];
-    var category = {
-        _id: "All",
-        num: 0
-    };
+    
     this.db = database;
 
     this.getCategories = function(callback) {
         "use strict";
+
+        var categories = [];
+        var category = {
+            _id: "All",
+            num: 0
+        };
+
         database.collection("item").aggregate([
             {$project: {category:1, _id: 0}},
             {$group: {
@@ -42,12 +45,13 @@ function ItemDAO(database) {
                 num: 1
             }}
         ], function(err, result) {
+            if (err) throw err;
+
             for(var i = 0; i < result.length; i++) {
                 categories.push(result[i]);
                 category.num += result[i].num;
             }
             categories.push(category);
-            console.log(categories)
             categories.sort(function(a,b) {
                 return (a._id > b._id) ? 1 : ((b._id > a._id) ? -1 : 0);
             });
@@ -88,7 +92,7 @@ function ItemDAO(database) {
 
     this.getItems = function(category, page, itemsPerPage, callback) {
         "use strict";
-
+        
         /*
          * TODO-lab1B
          *
@@ -110,19 +114,36 @@ function ItemDAO(database) {
          * than you do for other categories.
          *
          */
-
-        var pageItem = this.createDummyItem();
-        var pageItems = [];
-        for (var i=0; i<5; i++) {
-            pageItems.push(pageItem);
+        if(category == "All") {
+            var pageItems = [];
+            
+            var items = database.collection('item');
+            var cursor = items.find({});
+            cursor.sort('_id', 1);
+            cursor.skip(page * itemsPerPage);
+            cursor.limit(itemsPerPage);
+            
+            cursor.each(function(err, doc) {
+                if(err) throw err;
+                if(doc != null) {
+                    console.log(doc)
+                    pageItems.push(doc);
+                } else {
+                    callback(pageItems);
+                }
+            });
         }
+
+        // var pageItem = this.createDummyItem();
+        // for (var i=0; i<5; i++) {
+        //     pageItems.push(pageItem);
+        // }
 
         // TODO-lab1B Replace all code above (in this method).
 
         // TODO Include the following line in the appropriate
         // place within your code to pass the items for the selected page
         // to the callback.
-        callback(pageItems);
     }
 
 
