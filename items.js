@@ -132,6 +132,23 @@ function ItemDAO(database) {
                     callback(pageItems);
                 }
             });
+        } else {
+            var pageItems = [];
+            var items = database.collection('item');
+            var cursor = items.find({"category": category});
+            cursor.sort('_id', 1);
+            cursor.skip(page * itemsPerPage);
+            cursor.limit(itemsPerPage);
+            
+            cursor.each(function(err, doc) {
+                if(err) throw err;
+                if(doc != null) {
+                    console.log(doc)
+                    pageItems.push(doc);
+                } else {
+                    callback(pageItems);
+                }
+            });
         }
 
         // var pageItem = this.createDummyItem();
@@ -151,6 +168,7 @@ function ItemDAO(database) {
         "use strict";
 
         var numItems = 0;
+
 
         /*
          * TODO-lab1C:
