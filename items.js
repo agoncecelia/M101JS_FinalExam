@@ -22,11 +22,37 @@ var MongoClient = require('mongodb').MongoClient,
 function ItemDAO(database) {
     "use strict";
 
+    var categories = [];
+    var category = {
+        _id: "All",
+        num: 0
+    };
     this.db = database;
 
     this.getCategories = function(callback) {
         "use strict";
-
+        database.collection("item").aggregate([
+            {$project: {category:1, _id: 0}},
+            {$group: {
+                _id: "$category",
+                num: {$sum: 1}
+            }},
+            {$project: {
+                _id:1,
+                num: 1
+            }}
+        ], function(err, result) {
+            for(var i = 0; i < result.length; i++) {
+                categories.push(result[i]);
+                category.num += result[i].num;
+            }
+            categories.push(category);
+            console.log(categories)
+            categories.sort(function(a,b) {
+                return (a._id > b._id) ? 1 : ((b._id > a._id) ? -1 : 0);
+            });
+            callback(categories);
+        })
         /*
         * TODO-lab1A
         *
@@ -52,20 +78,11 @@ function ItemDAO(database) {
         *
         */
 
-        var categories = [];
-        var category = {
-            _id: "All",
-            num: 9999
-        };
-
-        categories.push(category)
-
         // TODO-lab1A Replace all code above (in this method).
 
         // TODO Include the following line in the appropriate
         // place within your code to pass the categories array to the
         // callback.
-        callback(categories);
     }
 
 
