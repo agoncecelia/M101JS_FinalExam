@@ -61,6 +61,20 @@ function CartDAO(database) {
     this.itemInCart = function(userId, itemId, callback) {
         "use strict";
 
+        
+        this.db.collection("cart").find(
+            {userId: userId},
+            {"items": { $elemMatch: {"_id": itemId}}},
+            {"items.$": 1}
+        ).toArray(function(err, result) {
+            if(result[0].items == undefined) {
+                callback(null)
+            } else {
+                var item = result[0].items[0];
+                callback(item)
+            }
+        })
+        
         /*
          *
          * TODO-lab6
@@ -86,7 +100,6 @@ function CartDAO(database) {
          *
          */
 
-        callback(null);
 
         // TODO-lab6 Replace all code above (in this method).
     }
