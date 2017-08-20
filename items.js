@@ -45,7 +45,7 @@ function ItemDAO(database) {
                 num: 1
             }}
         ], function(err, result) {
-            if (err) throw err;
+            assert.equal(null, err);
 
             for(var i = 0; i < result.length; i++) {
                 categories.push(result[i]);
@@ -124,7 +124,7 @@ function ItemDAO(database) {
             cursor.limit(itemsPerPage);
             
             cursor.each(function(err, doc) {
-                if(err) throw err;
+                assert.equal(null, err);
                 if(doc != null) {
                     pageItems.push(doc);
                 } else {
@@ -140,7 +140,7 @@ function ItemDAO(database) {
             cursor.limit(itemsPerPage);
             
             cursor.each(function(err, doc) {
-                if(err) throw err;
+                assert.equal(null, err);
                 if(doc != null) {
                     pageItems.push(doc);
                 } else {
@@ -167,10 +167,12 @@ function ItemDAO(database) {
 
         if(category == "All") {
             database.collection("item").find({}).sort('_id',1).count(function(err, count) {
+                assert.equal(null, err);
                 callback(count);
             });
         } else {
             database.collection("item").find({category: category}).sort('_id',1).count(function(err, count) {
+                assert.equal(null, err);
                 callback(count);
             });
         }
@@ -198,6 +200,22 @@ function ItemDAO(database) {
     this.searchItems = function(query, page, itemsPerPage, callback) {
         "use strict";
 
+        var items = [];
+        
+        var queryObj = {$text: {$search: query}};
+        database.collection("item").aggregate([
+            {$match: queryObj},
+            {$sort: {_id: 1}},
+            {$skip: (page * itemsPerPage)},
+            {$limit: itemsPerPage}
+            
+        ], function(err, result) {
+            assert.equal(null, err);
+            for (var i=0; i<result.length; i++) {
+                items.push(result[i]);
+            }
+            callback(items);
+        });
         /*
          * TODO-lab2A
          *
@@ -222,18 +240,14 @@ function ItemDAO(database) {
          *
          */
 
-        var item = this.createDummyItem();
-        var items = [];
-        for (var i=0; i<5; i++) {
-            items.push(item);
-        }
+
+
 
         // TODO-lab2A Replace all code above (in this method).
 
         // TODO Include the following line in the appropriate
         // place within your code to pass the items for the selected page
         // of search results to the callback.
-        callback(items);
     }
 
 
