@@ -174,6 +174,39 @@ function CartDAO(database) {
     this.updateQuantity = function(userId, itemId, quantity, callback) {
         "use strict";
 
+        var userCart = {
+            userId: userId,
+            items: []
+        }
+        if(quantity === 0) {
+            this.db.collection("cart").findOneAndUpdate(
+                {userId: userId},
+                {$pull: {'items' : {'_id': itemId}}},
+                function(err, result){
+                    console.log(result)
+                    assert.equal(null, err);
+                    for(var i = 0; i < result.value.items.length; i++) {
+                        userCart.items.push(result.value.items[i])
+                    }
+                    callback(userCart);
+                }
+            )
+        } else {
+            this.db.collection("cart").findOneAndUpdate(
+                {userId: userId, "items._id": itemId},
+                {$set: {'items.$.quantity': quantity}},
+                {returnOriginal: false},
+                function(err, result) {
+                    assert.equal(null, err);
+                    console.log(err)
+
+                   for(var i = 0; i < result.value.items.length; i++) {
+                        userCart.items.push(result.value.items[i])
+                    }
+                    callback(userCart);
+                }
+            )
+        }
         /*
         * TODO-lab7
         *
@@ -191,14 +224,7 @@ function CartDAO(database) {
         *
         */
 
-        var userCart = {
-            userId: userId,
-            items: []
-        }
-        var dummyItem = this.createDummyItem();
-        dummyItem.quantity = quantity;
-        userCart.items.push(dummyItem);
-        callback(userCart);
+        
 
         // TODO-lab7 Replace all code above (in this method).
 
