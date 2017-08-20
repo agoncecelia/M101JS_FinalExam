@@ -202,14 +202,14 @@ function ItemDAO(database) {
 
         var items = [];
         
-        var queryObj = {$text: {$search: query}};
-        database.collection("item").aggregate([
-            {$match: queryObj},
+        var queryObj = [
+            {$match: {$text: {$search: query}}},
             {$sort: {_id: 1}},
             {$skip: (page * itemsPerPage)},
             {$limit: itemsPerPage}
-            
-        ], function(err, result) {
+        ];
+
+        database.collection("item").aggregate(queryObj, function(err, result) {
             assert.equal(null, err);
             for (var i=0; i<result.length; i++) {
                 items.push(result[i]);
@@ -256,6 +256,14 @@ function ItemDAO(database) {
 
         var numItems = 0;
 
+        database.collection("item").aggregate([
+            {$match: {$text: {$search : query}}},
+            {$sort: {_id: 1}}],
+            function(err, result) {
+                assert.equal(null, err);
+                numItems = result.length;
+                callback(numItems);
+        });
         /*
         * TODO-lab2B
         *
@@ -269,7 +277,6 @@ function ItemDAO(database) {
         * simply do this in the mongo shell.
         */
 
-        callback(numItems);
     }
 
 
